@@ -18,7 +18,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Slf4j
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // todo: check https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter
 
@@ -48,7 +48,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no session
                 )
                 .authorizeHttpRequests(a -> a
-                        .anyRequest().permitAll() // todo
+                        .antMatchers("/h2/**", "/api/users/user/create/")
+                        .permitAll()
+                        // todo
+                        .anyRequest().authenticated()
                 );
     }
 

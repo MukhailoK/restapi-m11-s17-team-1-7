@@ -41,9 +41,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(long id) {
+    public boolean delete(long id) {
         User user = readById(id);
         userRepository.delete(user);
+        return false;
     }
 
     @Override
