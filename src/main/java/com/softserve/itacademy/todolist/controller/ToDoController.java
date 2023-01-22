@@ -104,4 +104,45 @@ public class ToDoController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/todos/{t_id}/collaborators")
+    List<UserResponse> getAllCollaborators(@PathVariable("t_id") long todoId) {
+        return todoService.readById(todoId).getCollaborators().stream()
+                .map(UserResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{user_id}/todos/{t_id}/collaborators")
+    ResponseEntity<?> addCollaborator(@PathVariable("t_id") long todoId, @PathVariable("user_id") long userId, @RequestBody CollaboratorRequest collaboratorRequest) {
+        ToDo toDo = todoService.readById(todoId);
+        List<User> collaborators = toDo.getCollaborators();
+        User collaborator = userService.readById(collaboratorRequest.getCollaboratorId());
+        if(collaborators.contains(collaborator) || toDo.getOwner().getId() == collaborator.getId()){
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+        collaborators.add(collaborator);
+        toDo.setCollaborators(collaborators);
+        todoService.update(toDo);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{user_id}/todos/{t_id}/collaborators")
+    ResponseEntity<UserResponse> removeCollaborator(@PathVariable("t_id") long todoId, @PathVariable("user_id") long userId, @RequestBody CollaboratorRequest collaboratorRequest) {
+        ToDo toDo = todoService.readById(todoId);
+        List<User> collaborators = toDo.getCollaborators();
+
+        System.out.println(collaborators);
+
+        User collaborator = userService.readById(collaboratorRequest.getCollaboratorId());
+        if(!collaborators.contains(collaborator) || toDo.getOwner().getId() == collaborator.getId()){
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+
+        collaborators.remove(collaborator);
+        toDo.setCollaborators(collaborators);
+        todoService.update(toDo);
+
+        System.out.println(todoService.readById(todoId).getCollaborators());
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 }
