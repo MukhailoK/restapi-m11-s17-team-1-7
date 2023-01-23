@@ -25,15 +25,6 @@ public class UserController {
         this.userTransformer = userTransformer;
     }
 
-    @PostMapping("/user/create/")
-    public ResponseEntity<Long> create(@RequestBody UserDto userDto, BindingResult bindingResult) {
-        User newUser = userTransformer.convertToInsertEntity(userDto);
-        if (userTransformer.convertToDto(userService.create(newUser)) != null) {
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
     @GetMapping(value = "/user/{id}/")
     public UserDto read(@PathVariable long id) {
         return userTransformer.convertToDto(userService.readById(id));
