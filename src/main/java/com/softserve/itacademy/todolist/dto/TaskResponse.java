@@ -9,35 +9,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Value
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TaskResponse {
-    Long id;
+    long id;
     String name;
-    Priority priority;
-    ToDo toDo;
-    State state;
+    String priority;
+    long toDoId;
+    String state;
 
-    public TaskResponse(Long id, String name, Priority priority, ToDo toDo, State state) {
+    public TaskResponse(long id, String name, String priority, long toDoId, String state) {
         this.id = id;
         this.name = name;
         this.priority = priority;
-        this.toDo = toDo;
+        this.toDoId = toDoId;
         this.state = state;
     }
 
-   public TaskResponse(Task task){
+    public TaskResponse(Task task){
         this.id = task.getId();
         this.name = task.getName();
-        this.priority = task.getPriority();
-        this.toDo = task.getTodo();
-        this.state = task.getState();
+        this.priority = task.getPriority().name();
+        this.toDoId = task.getTodo().getId();
+        this.state = task.getState().getName();
    }
 
 
-    public static Task transformToEntity(TaskResponse taskResponse, ToDo toDo){
+    public static Task transformToEntity(TaskResponse taskResponse, ToDo toDo, State state){
         Task newTask = new Task();
         newTask.setId(taskResponse.getId());
         newTask.setName(taskResponse.getName());
-        newTask.setPriority(taskResponse.getPriority());
+        newTask.setPriority(Priority.valueOf(taskResponse.getPriority()));
         newTask.setTodo(toDo);
+        newTask.setState(state);
+
         return newTask;
 
    }
