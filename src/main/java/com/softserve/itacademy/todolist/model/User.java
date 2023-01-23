@@ -1,8 +1,6 @@
 package com.softserve.itacademy.todolist.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,11 +9,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Getter @Setter @NoArgsConstructor
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -53,12 +55,14 @@ public class User implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
     private List<ToDo> myTodos;
 
     @ManyToMany
     @JoinTable(name = "todo_collaborator",
             joinColumns = @JoinColumn(name = "collaborator_id"),
             inverseJoinColumns = @JoinColumn(name = "todo_id"))
+    @ToString.Exclude
     private List<ToDo> otherTodos;
 
 
@@ -95,19 +99,6 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        User user = (User) o;
-        return getId() != null && getId().equals(user.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 
     @Override
