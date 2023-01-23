@@ -24,24 +24,28 @@ public class TaskController {
         this.toDoService = toDoService;
     }
 
-    @GetMapping("/tasks")
-    List<TaskResponse> getAll() {
-        return taskService.getAll().stream()
-                .map(TaskResponse::new)
-                .collect(Collectors.toList());
-    }
 
-    @GetMapping("/{t_id}/tasks")
-    public ResponseEntity<TaskResponse> read( @PathVariable("t_id") long tid ) {
+    @GetMapping("/{u_id}/todos/{t_id}/tasks")
+    public ResponseEntity<TaskResponse> readAll( @PathVariable("u_id") long uid, @PathVariable("t_id") long tid) {
         HttpHeaders headers = new HttpHeaders();
-        Task task = taskService.readById(tid);
+        List<Task> task = taskService.getByTodoId(tid);
         if (  task == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(new TaskResponse(task), headers, HttpStatus.OK);
+        return new ResponseEntity<>(new TaskResponse((Task) task), headers, HttpStatus.OK);
     }
 
-    @PutMapping("/{t_id}/tasks")
+    @GetMapping("/{u_id}/todos/{t_id}/tasks/{task_id}")
+    public ResponseEntity<TaskResponse> read( @PathVariable("u_id") long uid, @PathVariable("t_id") long tid, @PathVariable("task_id") long taskid) {
+        HttpHeaders headers = new HttpHeaders();
+        Task task = taskService.readById(taskid);
+        if (  task == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(new TaskResponse((Task) task), headers, HttpStatus.OK);
+    }
+
+    @PutMapping("/{u_id}/todos/{t_id}/tasks")
     public ResponseEntity<TaskResponse> update( @PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
         HttpHeaders headers = new HttpHeaders();
         ToDo toDo;
