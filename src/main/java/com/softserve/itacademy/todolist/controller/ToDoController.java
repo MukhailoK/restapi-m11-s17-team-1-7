@@ -130,7 +130,6 @@ public class ToDoController {
         ToDo toDo = todoService.readById(todoId);
         List<User> collaborators = toDo.getCollaborators();
 
-        System.out.println(collaborators);
 
         User collaborator = userService.readById(collaboratorRequest.getCollaboratorId());
         if(!collaborators.contains(collaborator) || toDo.getOwner().getId() == collaborator.getId()){
@@ -140,8 +139,6 @@ public class ToDoController {
         collaborators.remove(collaborator);
         toDo.setCollaborators(collaborators);
         todoService.update(toDo);
-
-        System.out.println(todoService.readById(todoId).getCollaborators());
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
