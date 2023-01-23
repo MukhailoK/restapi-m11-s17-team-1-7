@@ -10,6 +10,7 @@ import com.softserve.itacademy.todolist.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -36,6 +37,7 @@ public class ToDoController {
     }
 
 
+    @PreAuthorize("(authentication.principal.id == #id) || hasRole('ROLE_ADMIN')")
     @GetMapping("/{u_id}/todos")
     public ResponseEntity<TodoResponse> read(@PathVariable("u_id") long id) {
         HttpHeaders headers = new HttpHeaders();
@@ -58,7 +60,7 @@ public class ToDoController {
         }
         User owner;
         try{
-            owner = userService.readById(newTodo.getId());
+            owner = userService.readById(newTodo.getOwnerId());
         } catch (Exception e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -68,6 +70,7 @@ public class ToDoController {
     }
 
 
+    @PreAuthorize("(authentication.principal.id == #ownerId) || hasRole('ROLE_ADMIN')")
     @PutMapping("/{u_id}/todos")
     public ResponseEntity<TodoResponse> update(@PathVariable("u_id") long ownerId, @RequestBody @Valid TodoResponse updateTodo) {
         HttpHeaders headers = new HttpHeaders();
@@ -111,6 +114,7 @@ public class ToDoController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("(authentication.principal.id == #userId) || hasRole('ROLE_ADMIN')")
     @PutMapping("/{user_id}/todos/{t_id}/collaborators")
     ResponseEntity<?> addCollaborator(@PathVariable("t_id") long todoId, @PathVariable("user_id") long userId, @RequestBody CollaboratorRequest collaboratorRequest) {
         ToDo toDo = todoService.readById(todoId);
@@ -125,6 +129,7 @@ public class ToDoController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PreAuthorize("(authentication.principal.id == #userId) || hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{user_id}/todos/{t_id}/collaborators")
     ResponseEntity<UserResponse> removeCollaborator(@PathVariable("t_id") long todoId, @PathVariable("user_id") long userId, @RequestBody CollaboratorRequest collaboratorRequest) {
         ToDo toDo = todoService.readById(todoId);

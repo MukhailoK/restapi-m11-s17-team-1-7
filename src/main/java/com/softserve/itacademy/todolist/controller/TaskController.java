@@ -1,14 +1,19 @@
 package com.softserve.itacademy.todolist.controller;
+
 import com.softserve.itacademy.todolist.dto.TaskResponse;
 import com.softserve.itacademy.todolist.model.State;
 import com.softserve.itacademy.todolist.model.Task;
 import com.softserve.itacademy.todolist.model.ToDo;
+import com.softserve.itacademy.todolist.model.User;
 import com.softserve.itacademy.todolist.service.StateService;
 import com.softserve.itacademy.todolist.service.TaskService;
 import com.softserve.itacademy.todolist.service.ToDoService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -22,7 +27,7 @@ public class TaskController {
     private final ToDoService toDoService;
     private final StateService stateService;
 
-    public TaskController(TaskService taskService, ToDoService toDoService, StateService stateService){
+    public TaskController(TaskService taskService, ToDoService toDoService, StateService stateService) {
         this.taskService = taskService;
         this.toDoService = toDoService;
         this.stateService = stateService;
@@ -30,28 +35,34 @@ public class TaskController {
 
 
     @GetMapping("/{u_id}/todos/{t_id}/tasks")
-    public ResponseEntity<List<TaskResponse>> readAll( @PathVariable("u_id") long uid, @PathVariable("t_id") long tid) {
+    public ResponseEntity<List<TaskResponse>> readAll(@PathVariable("u_id") long uid, @PathVariable("t_id") long tid) {
         HttpHeaders headers = new HttpHeaders();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+        boolean admin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         List<TaskResponse> task = taskService.getByTodoId(tid).stream()
+                .filter(tas -> {
+                    ToDo todo = tas.getTodo();
+                    if (admin) {
+                        return true;
+                    } else return todo.getOwner().equals(user) || todo.getCollaborators().contains(user);
+                })
                 .map(TaskResponse::new).collect(Collectors.toList());
-        if (  task == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(task, headers, HttpStatus.OK);
     }
 
     @GetMapping("/{u_id}/todos/{t_id}/tasks/{task_id}")
-    public ResponseEntity<TaskResponse> read( @PathVariable("u_id") long uid, @PathVariable("t_id") long tid, @PathVariable("task_id") long taskid) {
+    public ResponseEntity<TaskResponse> read(@PathVariable("u_id") long uid, @PathVariable("t_id") long tid, @PathVariable("task_id") long taskid) {
         HttpHeaders headers = new HttpHeaders();
         Task task = taskService.readById(taskid);
-        if (  task == null) {
+        if (task == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(new TaskResponse((Task) task), headers, HttpStatus.OK);
     }
 
     @PostMapping("/{u_id}/todos/{t_id}/tasks")
-    public ResponseEntity<TaskResponse> create( @PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
+    public ResponseEntity<TaskResponse> create(@PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
         HttpHeaders headers = new HttpHeaders();
         ToDo toDo;
 
@@ -60,10 +71,10 @@ public class TaskController {
         }
 
 
-        try{
+        try {
             toDo = toDoService.readById(tid);
-        }catch (Exception e){
-            return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         State state = stateService.getByName(newTask.getState());
@@ -75,22 +86,22 @@ public class TaskController {
     }
 
     @PutMapping("/{u_id}/todos/{t_id}/tasks")
-    public ResponseEntity<TaskResponse> update( @PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
+    public ResponseEntity<TaskResponse> update(@PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
         HttpHeaders headers = new HttpHeaders();
         ToDo toDo;
 
         if (newTask == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        try{
+        try {
             toDo = toDoService.readById(tid);
-        }catch (Exception e){
-            return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-       Task task = taskService.readById(newTask.getId());
+        Task task = taskService.readById(newTask.getId());
 
-        if(task.getTodo().getId() != tid){
+        if (task.getTodo().getId() != tid) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -105,9 +116,9 @@ public class TaskController {
     public ResponseEntity<TaskResponse> update(@PathVariable("task_id") long tid) {
         Task deleteTask;
 
-        try{
+        try {
             deleteTask = taskService.readById(tid);
-        } catch (Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 

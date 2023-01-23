@@ -1,7 +1,6 @@
 package com.softserve.itacademy.todolist.model;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,7 +9,6 @@ import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 
 @Getter
@@ -69,7 +67,7 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getPassword(){
+    public String getPassword() {
         return password;
     }
 
@@ -96,12 +94,27 @@ public class User implements UserDetails {
     @Override
     public String toString() {
         return "User { " +
-               "id = " + id +
-               ", firstName = '" + firstName + '\'' +
-               ", lastName = '" + lastName + '\'' +
-               ", email = '" + email + '\'' +
-               ", password = '" + password + '\'' +
-               ", role = " + role +
-               " }";
+                "id = " + id +
+                ", firstName = '" + firstName + '\'' +
+                ", lastName = '" + lastName + '\'' +
+                ", email = '" + email + '\'' +
+                ", password = '" + password + '\'' +
+                ", role = " + role +
+                " }";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        return id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }
