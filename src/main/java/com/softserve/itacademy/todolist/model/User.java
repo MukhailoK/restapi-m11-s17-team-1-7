@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
@@ -63,12 +64,17 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(role);
+        return List.of(new SimpleGrantedAuthority(role.getName()));
     }
 
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public String getPassword(){
+        return password;
     }
 
     @Override

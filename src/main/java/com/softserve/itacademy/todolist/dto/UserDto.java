@@ -1,6 +1,5 @@
 package com.softserve.itacademy.todolist.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.softserve.itacademy.todolist.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
