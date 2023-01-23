@@ -31,20 +31,18 @@ public class TaskController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/{u_id}/todos/{t_id}/tasks")
-    public ResponseEntity<TaskResponse> read(@PathVariable("u_id") long uid, @PathVariable("t_id") long tid ) {
+    @GetMapping("/{t_id}/tasks")
+    public ResponseEntity<TaskResponse> read( @PathVariable("t_id") long tid ) {
         HttpHeaders headers = new HttpHeaders();
-        ToDo toDo = toDoService.readById(uid);
         Task task = taskService.readById(tid);
-
-        if ( toDo == null || task == null) {
+        if (  task == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(new TaskResponse(task), headers, HttpStatus.OK);
     }
 
     @PutMapping("/{t_id}/tasks")
-    public ResponseEntity<TaskResponse> update(@PathVariable("u_id") long uid, @PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
+    public ResponseEntity<TaskResponse> update( @PathVariable("t_id") long tid, @RequestBody @Valid TaskResponse newTask) {
         HttpHeaders headers = new HttpHeaders();
         ToDo toDo;
 
@@ -52,14 +50,14 @@ public class TaskController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            toDo = toDoService.readById(uid);
+            toDo = toDoService.readById(tid);
         }catch (Exception e){
             return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
        Task task = taskService.readById(newTask.getId());
 
-        if(task.getTodo().getId() != uid){
+        if(task.getTodo().getId() != tid){
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -67,8 +65,8 @@ public class TaskController {
         return new ResponseEntity<>(newTask, headers, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("{t_id}")
-    public ResponseEntity<TaskResponse> update(@PathVariable("t_id") long tid) {
+    @DeleteMapping("{task_id}")
+    public ResponseEntity<TaskResponse> update(@PathVariable("task_id") long tid) {
         Task deleteTask;
 
         try{
