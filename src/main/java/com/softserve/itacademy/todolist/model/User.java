@@ -1,20 +1,23 @@
 package com.softserve.itacademy.todolist.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Getter @Setter @NoArgsConstructor
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -36,14 +39,6 @@ public class User implements UserDetails {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Pattern(regexp = "[A-Za-z\\d]{6,}",
-            message = "Must be minimum 6 symbols long, using digits and latin letters")
-    @Pattern(regexp = ".*\\d.*",
-            message = "Must contain at least one digit")
-    @Pattern(regexp = ".*[A-Z].*",
-            message = "Must contain at least one uppercase letter")
-    @Pattern(regexp = ".*[a-z].*",
-            message = "Must contain at least one lowercase letter")
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -52,23 +47,30 @@ public class User implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
     private List<ToDo> myTodos;
 
     @ManyToMany
     @JoinTable(name = "todo_collaborator",
             joinColumns = @JoinColumn(name = "collaborator_id"),
             inverseJoinColumns = @JoinColumn(name = "todo_id"))
+    @ToString.Exclude
     private List<ToDo> otherTodos;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(role);
+        return List.of(new SimpleGrantedAuthority(role.getName()));
     }
 
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public String getPassword(){
+        return password;
     }
 
     @Override
@@ -89,19 +91,6 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        User user = (User) o;
-        return getId() != null && getId().equals(user.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 
     @Override
